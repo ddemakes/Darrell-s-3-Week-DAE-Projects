@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LaughMD</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -13,11 +13,6 @@
     <img src="images/logo.png" alt="LaughMD Logo" width="250" />
     </div>
   </header>
-
-  <nav>
-
-  </nav>
- 
   <main>
     <section>
       <div style="text-align: center;" id="heading">
@@ -27,21 +22,18 @@
       </div>
     
       <div class="login-container" style="text-align: center;">
-        <form>
-          <label for="pid">Patient ID</label>
-            <input type="pid" id="pid" name="pid" placeholder="12345" required />
-            <br><br>
-          
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="*************"required />
-            <br><br>
-      
-            <a href="form-page.html">
-              <button type="button">Log In</button>
-            </a>
-        </form>
         
-        <p class="signup-link">Don't have an account? <a href="#">Sign up</a></p>
+            <form method="POST" action="login.php">
+                <label for="patient_id">Patient ID</label>
+                <input type="text" name="patient_id" required><br><br>
+                
+                <label for="password">Password</label>
+                <input type="password" name="password" required><br><br>
+                <button type="submit">Login</button>
+                
+            </form>
+        
+        <p class="signup-link">Don't have an account? <a href="signup.html" target="_blank" >Sign up</a></p>
       </div>
     </section>
   </main>
