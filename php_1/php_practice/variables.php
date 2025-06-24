@@ -6,5 +6,7 @@ $age = 50;
 // Declaring and assigning a string
 $phone = "203-555-1212";
 // Displaying variables
-echo ("Name: " . $name . "<br>"); echo ("Age: " . $age . "<br>");echo ("Phone Number: " . $phone . "<br>");
+echo "Name: " . $name . "<br>";
+echo "Age: " . $age . "<br>";
+echo "Phone Number: " . $phone . "<br>";
 ?>

@@ -1,9 +1,9 @@
 <?php
 // Database connection (procedural style)
 $host = "localhost";
-$dbname = "LaughMD";       // Replace with your DB name
-$username = "root";         // Replace with your DB username
-$password = "root";         // Replace with your DB password
+$dbname = "LaughMD";
+$username = "root";
+$password = "root";
 
 $conn = mysqli_connect($host, $username, $password, $dbname);
 
@@ -32,6 +32,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $confirm_password = isset($_POST["confirm_password"]) ? mysqli_real_escape_string($conn, trim($_POST["confirm_password"])) : "";
     $clinic_id = isset($_POST["clinic_id"]) ? mysqli_real_escape_string($conn, trim($_POST["clinic_id"])) : "";
 
+    // Capture current date and time
+    $signup_date = date("Y-m-d");
+    $signup_time = date("H:i:s");
+
     if (empty($patient_id) || empty($password) || empty($confirm_password) || empty($clinic_id)) {
         $message = "All fields are required.";
     } elseif ($password !== $confirm_password) {
@@ -47,12 +51,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Insert into User table
-            $insert_sql = "INSERT INTO User (patientid, hashedPassword, clinicID) VALUES ('$patient_id', '$hashed_password', '$clinic_id')";
+            // Insert into User table with signup date and time
+            $insert_sql = "INSERT INTO User (patientid, hashedPassword, clinicID, signup_date, signup_time) 
+                           VALUES ('$patient_id', '$hashed_password', '$clinic_id', '$signup_date', '$signup_time')";
+            
             if (mysqli_query($conn, $insert_sql)) {
-                $message = "Signup successful!";
-            } else {
-                $message = "Error: " . mysqli_error($conn);
+                $message = "Signup successful! Redirecting to login page...";
+                echo '<script>
+                    setTimeout(function() {
+                        window.location.href = "login.php";
+                    }, 3000);
+                </script>';
             }
         }
     }

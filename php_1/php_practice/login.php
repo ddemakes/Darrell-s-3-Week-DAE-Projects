@@ -1,52 +1,75 @@
 <?php
-// login.php
+session_start();
 
 // Database connection
 $host = "localhost";
-$dbname = "your_database_name";
-$username = "your_db_username";
-$password = "your_db_password";
-$conn = new mysqli($host, $username, $password, $dbname);
+$dbname = "LaughMD";
+$username = "root";
+$password = "root";
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$conn = mysqli_connect($host, $username, $password, $dbname);
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
 }
 
-// Handle login submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $patient_id = trim($_POST["patient_id"]);
-    $input_password = trim($_POST["password"]);
-    
-    // Validate inputs
-    if (empty($patient_id) || empty($input_password)) {
-        echo "Patient ID and Password are required.";
-    } else {
-        // Look up the patient in the database
-        $stmt = $conn->prepare("SELECT password FROM patients WHERE patient_id = ?");
-        $stmt->bind_param("s", $patient_id);
-        $stmt->execute();
-        $stmt->store_result();
-        
-        if ($stmt->num_rows == 1) {
-            $stmt->bind_result($hashed_password);
-            $stmt->fetch();
-            
-            // Verify password
-            if (password_verify($input_password, $hashed_password)) {
-                echo "Login successful. Welcome, Patient ID: $patient_id!";
-                // You can start a session here if needed
+    $patient_id = mysqli_real_escape_string($conn, $_POST["patient_id"]);
+    $password_input = mysqli_real_escape_string($conn, $_POST["password"]);
+
+    $sql = "SELECT id, hashedPassword, clinicID FROM User WHERE patientid = '$patient_id'";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result && mysqli_num_rows($result) === 1) {
+        $user = mysqli_fetch_assoc($result);
+        if (password_verify($password_input, $user["hashedPassword"])) {
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["clinic_id"] = $user["clinicID"];
+
+            // Get SurveyID from clinic_survey table
+            $clinic_id = $user["clinicID"];
+            $survey_sql = "SELECT surveyID FROM clinic_survey WHERE clinicID = '$clinic_id' LIMIT 1";
+            $survey_result = mysqli_query($conn, $survey_sql);
+
+            if ($survey_result && mysqli_num_rows($survey_result) === 1) {
+                $survey = mysqli_fetch_assoc($survey_result);
+                $survey_id = $survey["surveyID"];
+                header("Location: survey_$survey_id.php");
+                exit();
             } else {
-                echo "Incorrect password.";
+                echo "No survey assigned to this clinic.";
             }
         } else {
-            echo "Patient ID not found.";
+            echo "Invalid password.";
         }
-
-        $stmt->close();
+    } else {
+        echo "Invalid patient ID.";
     }
 }
 
-$conn->close();
+mysqli_close($conn);
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="POST" action="login.php">
+    <label for="patient_id">Patient ID</label>
+    <input type="text" name="patient_id" required><br><br>
+
+    <label for="password">Password</label>
+    <input type="password" name="password" required><br><br>
+    <button type="submit">Login</button>
+
+    </form>
+</body>
+</html>
+
+
+
+
 
