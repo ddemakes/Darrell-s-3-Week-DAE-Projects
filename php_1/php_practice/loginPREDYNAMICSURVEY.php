@@ -2,54 +2,51 @@
 session_start();
 
 // Database connection
-require_once 'db.php'; // assumes you have db.php from earlier
+$host = "localhost";
+$dbname = "LaughMD";
+$username = "root";
+$password = "root";
+
+$conn = mysqli_connect($host, $username, $password, $dbname);
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 
 $message = "";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $patient_id = trim($_POST["patient_id"]);
-    $password_input = trim($_POST["password"]);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $patient_id = mysqli_real_escape_string($conn, $_POST["patient_id"]);
+    $password_input = mysqli_real_escape_string($conn, $_POST["password"]);
 
-    // Get user by patientid
-    $sql = "SELECT id, hashedPassword, clinicID FROM User WHERE patientid = ?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $patient_id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $sql = "SELECT id, hashedPassword, clinicID FROM User WHERE patientid = '$patient_id'";
+    $result = mysqli_query($conn, $sql);
 
     if ($result && mysqli_num_rows($result) === 1) {
         $user = mysqli_fetch_assoc($result);
 
         if (password_verify($password_input, $user["hashedPassword"])) {
-            // Store user data in session
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["clinic_id"] = $user["clinicID"];
 
-            // Fetch assigned survey for the user's clinic
-            $survey_sql = "SELECT surveyID FROM clinic_survey WHERE clinicID = ? LIMIT 1";
-            $survey_stmt = mysqli_prepare($conn, $survey_sql);
-            mysqli_stmt_bind_param($survey_stmt, "i", $user["clinicID"]);
-            mysqli_stmt_execute($survey_stmt);
-            $survey_result = mysqli_stmt_get_result($survey_stmt);
+            // Get surveyID based on the clinicID
+            $clinic_id = $user["clinicID"];
+            $survey_sql = "SELECT surveyID FROM clinic_survey WHERE clinicID = '$clinic_id' LIMIT 1";
+            $survey_result = mysqli_query($conn, $survey_sql);
 
             if ($survey_result && mysqli_num_rows($survey_result) === 1) {
                 $survey = mysqli_fetch_assoc($survey_result);
-                $_SESSION["survey_id"] = $survey["surveyID"]; // store survey ID for use in survey.php
-
-                header("Location: survey.php");
+                $survey_id = $survey["surveyID"];
+                header("Location: survey_$survey_id.php");
                 exit();
             } else {
-                $message = "No survey assigned to your clinic.";
+                $message = "No survey assigned to this clinic.";
             }
         } else {
-            $message = "Incorrect password.";
+            $message = "Invalid password.";
         }
     } else {
         $message = "Invalid patient ID.";
     }
-
-    mysqli_stmt_close($stmt);
-    if (isset($survey_stmt)) mysqli_stmt_close($survey_stmt);
 }
 
 mysqli_close($conn);
@@ -63,6 +60,7 @@ mysqli_close($conn);
   <title>LaughMD Login</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header>
     <div style="text-align: center;">
@@ -87,10 +85,10 @@ mysqli_close($conn);
 
           <form method="POST" action="login.php">
             <label for="patient_id">Patient ID</label>
-            <input type="text" name="patient_id" required />
+            <input type="text" name="patient_id" required>
 
             <label for="password">Password</label>
-            <input type="password" name="password" required />
+            <input type="password" name="password" required>
 
             <button type="submit">Login</button>
           </form>

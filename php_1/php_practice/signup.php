@@ -1,38 +1,30 @@
 <?php
-// Database connection (procedural style)
-$host = "localhost";
-$dbname = "LaughMD";
-$username = "root";
-$password = "root";
-
+// ─── DB Connection ─────────────────────────────────────────────────────────────
+$host = 'localhost';
+$dbname = 'LaughMD';
+$username = 'root';
+$password = 'root';
 $conn = mysqli_connect($host, $username, $password, $dbname);
-
-// Check connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Get clinics from the database to populate dropdown, alphabetized by clinicname
-$clinics = [];
-$clinic_query = "SELECT id, clinicname FROM Clinics ORDER BY clinicname ASC";
-$clinic_result = mysqli_query($conn, $clinic_query);
-if ($clinic_result && mysqli_num_rows($clinic_result) > 0) {
-    while ($row = mysqli_fetch_assoc($clinic_result)) {
-        $clinics[] = $row;
-    }
-}
+// ─── Custom Functions ──────────────────────────────────────────────────────────
+require_once 'functions.php';
 
-// Message to display after submission
+// ─── Retrieve Clinics ──────────────────────────────────────────────────────────
+$clinics = getClinics($conn);
+
+// ─── Initialize Message ────────────────────────────────────────────────────────
 $message = "";
 
-// Handle form submission
+// ─── Handle Form Submission ────────────────────────────────────────────────────
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $patient_id = isset($_POST["patient_id"]) ? mysqli_real_escape_string($conn, trim($_POST["patient_id"])) : "";
-    $password = isset($_POST["password"]) ? mysqli_real_escape_string($conn, trim($_POST["password"])) : "";
-    $confirm_password = isset($_POST["confirm_password"]) ? mysqli_real_escape_string($conn, trim($_POST["confirm_password"])) : "";
-    $clinic_id = isset($_POST["clinic_id"]) ? mysqli_real_escape_string($conn, trim($_POST["clinic_id"])) : "";
+    $patient_id = mysqli_real_escape_string($conn, trim($_POST["patient_id"] ?? ''));
+    $password = mysqli_real_escape_string($conn, trim($_POST["password"] ?? ''));
+    $confirm_password = mysqli_real_escape_string($conn, trim($_POST["confirm_password"] ?? ''));
+    $clinic_id = mysqli_real_escape_string($conn, trim($_POST["clinic_id"] ?? ''));
 
-    // Capture current date and time
     $signup_date = date("Y-m-d");
     $signup_time = date("H:i:s");
 
@@ -41,20 +33,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($password !== $confirm_password) {
         $message = "Passwords do not match.";
     } else {
-        // Check if patient ID already exists
         $check_sql = "SELECT id FROM User WHERE patientid = '$patient_id'";
         $result = mysqli_query($conn, $check_sql);
 
         if (mysqli_num_rows($result) > 0) {
             $message = "Patient ID already exists. Choose another.";
         } else {
-            // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-            // Insert into User table with signup date and time
             $insert_sql = "INSERT INTO User (patientid, hashedPassword, clinicID, signup_date, signup_time) 
                            VALUES ('$patient_id', '$hashed_password', '$clinic_id', '$signup_date', '$signup_time')";
-            
             if (mysqli_query($conn, $insert_sql)) {
                 $message = "Signup successful! Redirecting to login page...";
                 echo '<script>
@@ -62,6 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         window.location.href = "login.php";
                     }, 3000);
                 </script>';
+            } else {
+                $message = "Error: " . mysqli_error($conn);
             }
         }
     }
@@ -75,7 +64,7 @@ mysqli_close($conn);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LaughMD</title>
+  <title>LaughMD - Signup</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -86,40 +75,41 @@ mysqli_close($conn);
     </div>
   </header>
 
-  <nav>
-    <!-- Navigation can be added here -->
-  </nav>
-
   <main>
     <section>
-      <div style="text-align: center;" id="heading">
-        <h2>Patient Signup</h2>
+      <div class="login-page-wrapper">
+        <div id="heading">
+          <h2>Patient Signup</h2>
+        </div>
 
-        <!-- Display PHP message -->
         <?php if (!empty($message)) : ?>
-          <p style="color: red;"><strong><?php echo $message; ?></strong></p>
+          <p style="text-align: center; color: red;"><strong><?php echo $message; ?></strong></p>
         <?php endif; ?>
 
-        <form method="POST" action="signup.php">
-          <label for="patient_id">Patient ID</label>
-          <input type="text" name="patient_id" required><br><br>
+        <div class="login-container">
+          <form method="POST" action="signup.php">
+            <label for="patient_id">Patient ID</label>
+            <input type="text" name="patient_id" required>
 
-          <label for="password">Password</label>
-          <input type="password" name="password" required><br><br>
+            <label for="password">Password</label>
+            <input type="password" name="password" required>
 
-          <label for="confirm_password">Confirm Password</label>
-          <input type="password" name="confirm_password" required><br><br>
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" name="confirm_password" required>
 
-          <label for="clinic_id">Select Clinic</label>
-          <select name="clinic_id" required>
-            <option value="">-- Choose a Clinic --</option>
-            <?php foreach ($clinics as $clinic): ?>
-              <option value="<?php echo $clinic['id']; ?>"><?php echo htmlspecialchars($clinic['clinicname']); ?></option>
-            <?php endforeach; ?>
-          </select><br><br>
+            <label for="clinic_id">Select Clinic</label>
+            <select name="clinic_id" required>
+           
+              <?= renderClinicOptions($clinics); ?>
+            </select>
 
-          <button type="submit">Submit</button>
-        </form>
+            <button type="submit">Submit</button>
+          </form>
+
+          <p class="login-link" style="text-align: center; margin-top: 1rem;">
+            Already have an account? <a href="login.php">Log In</a>
+          </p>
+        </div>
       </div>
     </section>
   </main>
