@@ -22,8 +22,8 @@
   </header>
 
     <h1>Login to Start Laughing!</h1>
-    <button onclick="window.location.href='login.php'">Log In</button>
-  </div>
+    <button id="LoginButton" onclick="window.location.href='login.php'">Log In</button>
+ 
 
 </body>
 </html>

@@ -114,11 +114,12 @@ $categories = [
 
   <main>
     <ul>
-        <li><a href="playlists.php">Seinfeld</a></li>
-        <li><a href="playlists.php">Abbott Elementary</a></li>
-        <li><a href="playlists.php">Friends</a></li>
-        <li><a href="playlists.php">30 Rock</a></li>
-        <li><a href="playlists.php">The Office</a></li>  
+        <li><a href="videos.php">Seinfeld</a></li>
+        <li><a href="videos.php">Abbott Elementary</a></li>
+        <li><a href="videos.php">Friends</a></li>
+        <li><a href="videos.php">30 Rock</a></li>
+        <li><a href="videos.php">The Office</a></li>
+  
     </ul>
   </main>
 

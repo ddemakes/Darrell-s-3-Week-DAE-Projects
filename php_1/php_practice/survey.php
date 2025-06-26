@@ -70,7 +70,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ";
     mysqli_query($conn, $log_sql);
 
-    echo "<script>alert('Thank you for completing the survey!'); window.location.href='thankyou.php';</script>";
+    // header echo "<script>alert('Thank you for completing the survey!'); window.location.href='thankyou.php';</script>";
+    // mysqli_close($conn);
+
+    header("Location: thankyou.php");
     mysqli_close($conn);
     exit();
 }
@@ -97,8 +100,8 @@ $questions_result = mysqli_query($conn, $questions_sql);
 </head>
 <body>
   <header style="text-align: center;">
-    <img src="images/logo.png" alt="LaughMD Logo" width="220" />
-    <h2><?php echo htmlspecialchars($survey_name); ?> Survey</h2>
+    <img src="images/logo.png" alt="LaughMD Logo" width="250" />
+   <!-- <h2><?php echo htmlspecialchars($survey_name); ?> Survey</h2> -->
   </header>
 
   <main style="max-width: 700px; margin: auto;">

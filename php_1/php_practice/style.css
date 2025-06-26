@@ -116,3 +116,20 @@ header img {
   display: block;
   margin: 0 auto;
 }
+
+main ul li a {
+  text-decoration: none;
+  color:#ffffff;
+}
+
+main ul li {
+  background-color: green;
+}
+
+
+
+
+#LoginButton  {
+  background-color: green;
+  width: 20%;
+}
